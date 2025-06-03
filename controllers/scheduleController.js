@@ -7,7 +7,19 @@ exports.getSchedule = async (req, res) => {
 
     const query = {};
 
-    // Build query
+    // Exact date filter (even without time)
+    if (date && !time) {
+      const startOfDay = new Date(date);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      query.scheduledDate = {
+        $gte: startOfDay,
+        $lte: endOfDay
+      };
+    }
+
+    // Date + time combo filter
     if (date && time) {
       const startOfDay = new Date(date);
       const endOfDay = new Date(date);
@@ -46,7 +58,7 @@ exports.getSchedule = async (req, res) => {
 
       return {
         ...item._doc,
-        availability // Inject the status
+        availability
       };
     });
 
@@ -56,6 +68,7 @@ exports.getSchedule = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // PUT /api/schedule/:id/reschedule
 exports.rescheduleItem = async (req, res) => {
